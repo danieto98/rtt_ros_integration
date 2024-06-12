@@ -90,16 +90,17 @@ configure_file(
 include_directories(
   ${USE_OROCOS_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
-  ${${_package}_INCLUDE_DIRS})
+  ${${_package}_INCLUDE_DIRS}
+  ${_include_dirs})
 
 # Targets
 if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_BUILD_TYPE MinSizeRel)
 endif()
 orocos_service(         rtt_${ROSPACKAGE}_rosservice_proxies ${CMAKE_CURRENT_BINARY_DIR}/rtt_rosservice_proxies.cpp)
-target_link_libraries(  rtt_${ROSPACKAGE}_rosservice_proxies ${catkin_LIBRARIES} ${USE_OROCOS_LIBRARIES})
+target_link_libraries(  rtt_${ROSPACKAGE}_rosservice_proxies ${catkin_LIBRARIES} ${_pkg_libs} ${USE_OROCOS_LIBRARIES})
 if(DEFINED ${_package}_EXPORTED_TARGETS)
-  add_dependencies(       rtt_${ROSPACKAGE}_rosservice_proxies ${${_package}_EXPORTED_TARGETS})
+  add_dependencies(       rtt_${ROSPACKAGE}_rosservice_proxies ${${_package}_EXPORTED_TARGETS} ${_msg_exported_targets})
 endif()
 
 get_directory_property(_additional_make_clean_files ADDITIONAL_MAKE_CLEAN_FILES)

@@ -196,7 +196,8 @@ include_directories(
   ${rtt_roscomm_GENERATED_HEADERS_INSTALL_DESTINATION}/orocos
   ${USE_OROCOS_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
-  ${${_package}_INCLUDE_DIRS})
+  ${${_package}_INCLUDE_DIRS}
+  ${_include_dirs})
 
 # Targets
 if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -206,37 +207,37 @@ add_custom_target(rtt-${_package}-generate_boost_headers
   DEPENDS ${${_package}_GENERATED_BOOST_HEADERS}
 )
 orocos_typekit(rtt-${_package}-typekit ${rtt-${_package}-typekit_SOURCES})
-target_link_libraries(rtt-${_package}-typekit ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${USE_OROCOS_LIBRARIES})
-add_dependencies(rtt-${_package}-typekit rtt-${_package}-generate_boost_headers)
+target_link_libraries(rtt-${_package}-typekit ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${_pkg_libs} ${USE_OROCOS_LIBRARIES})
+add_dependencies(rtt-${_package}-typekit rtt-${_package}-generate_boost_headers ${_typekit_targets})
 orocos_typekit(rtt-${_package}-ros-transport ${rtt-${_package}-ros-transport_SOURCES})
-target_link_libraries(rtt-${_package}-ros-transport ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${USE_OROCOS_LIBRARIES})
-add_dependencies(rtt-${_package}-ros-transport rtt-${_package}-generate_boost_headers)
+target_link_libraries(rtt-${_package}-ros-transport ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${_pkg_libs} ${USE_OROCOS_LIBRARIES})
+add_dependencies(rtt-${_package}-ros-transport rtt-${_package}-generate_boost_headers ${_transport_targets})
 
 # Build mqueue transport plugin
 if(ENABLE_MQ)
   orocos_typekit(rtt-${_package}-ros-transport-mqueue ${rtt-${_package}-ros-transport-mqueue_SOURCES})
-  target_link_libraries(rtt-${_package}-ros-transport-mqueue ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${USE_OROCOS_LIBRARIES} ${OROCOS-RTT_MQUEUE_LIBRARIES})
-  add_dependencies(rtt-${_package}-ros-transport-mqueue rtt-${_package}-generate_boost_headers)
+  target_link_libraries(rtt-${_package}-ros-transport-mqueue ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${_pkg_libs} ${USE_OROCOS_LIBRARIES} ${OROCOS-RTT_MQUEUE_LIBRARIES})
+  add_dependencies(rtt-${_package}-ros-transport-mqueue rtt-${_package}-generate_boost_headers ${_mqueue_targets})
 endif()
 
 # Build corba transport plugin
 if(ENABLE_CORBA)
   orocos_typekit(rtt-${_package}-ros-transport-corba ${rtt-${_package}-ros-transport-corba_SOURCES})
-  target_link_libraries(rtt-${_package}-ros-transport-corba ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${USE_OROCOS_LIBRARIES} ${OROCOS-RTT_CORBA_LIBRARIES})
-  add_dependencies(rtt-${_package}-ros-transport-corba rtt-${_package}-generate_boost_headers)
+  target_link_libraries(rtt-${_package}-ros-transport-corba ${catkin_LIBRARIES} ${${_package}_LIBRARIES} ${_pkg_libs} ${USE_OROCOS_LIBRARIES} ${OROCOS-RTT_CORBA_LIBRARIES})
+  add_dependencies(rtt-${_package}-ros-transport-corba rtt-${_package}-generate_boost_headers ${_corba_targets})
 endif()
 
 # Add an explicit dependency between the typekits and message files
 # TODO: Add deps for all msg dependencies
-if(${_package}_EXPORTED_TARGETS)
+if(${_package}_EXPORTED_TARGETS OR DEFINED _msg_exported_targets)
   if(NOT ${_package} STREQUAL ${PROJECT_NAME})
-    add_dependencies(rtt-${_package}-typekit ${${_package}_EXPORTED_TARGETS})
-    add_dependencies(rtt-${_package}-ros-transport ${${_package}_EXPORTED_TARGETS})
+    add_dependencies(rtt-${_package}-typekit ${${_package}_EXPORTED_TARGETS} ${_msg_exported_targets})
+    add_dependencies(rtt-${_package}-ros-transport ${${_package}_EXPORTED_TARGETS} ${_msg_exported_targets})
     if(TARGET rtt-${_package}-ros-transport-mqueue)
-      add_dependencies(rtt-${_package}-ros-transport-mqueue ${${_package}_EXPORTED_TARGETS})
+      add_dependencies(rtt-${_package}-ros-transport-mqueue ${${_package}_EXPORTED_TARGETS} ${_msg_exported_targets})
     endif()
     if(TARGET rtt-${_package}-ros-transport-corba)
-      add_dependencies(rtt-${_package}-ros-transport-corba ${${_package}_EXPORTED_TARGETS})
+      add_dependencies(rtt-${_package}-ros-transport-corba ${${_package}_EXPORTED_TARGETS} ${_msg_exported_targets})
     endif()
   endif()
 endif()
@@ -244,7 +245,7 @@ endif()
 # Add the typekit libraries to the dependecies exported by this project
 #    LIST(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS "rtt-${_package}-typekit")        # <-- This is already done in orocos_typekit().
 #    LIST(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS "rtt-${_package}-ros-transport")  # <-- This is already done in orocos_typekit().
-LIST(APPEND ${PROJECT_NAME}_EXPORTED_INCLUDE_DIRS "${rtt_roscomm_GENERATED_HEADERS_OUTPUT_DIRECTORY}/orocos" ${${_package}_INCLUDE_DIRS})
+LIST(APPEND ${PROJECT_NAME}_EXPORTED_INCLUDE_DIRS "${rtt_roscomm_GENERATED_HEADERS_OUTPUT_DIRECTORY}/orocos" ${${_package}_INCLUDE_DIRS} ${_include_dirs})
 
 get_directory_property(_additional_make_clean_files ADDITIONAL_MAKE_CLEAN_FILES)
 list(APPEND _additional_make_clean_files "${rtt-${_package}-typekit_SOURCES};${rtt-${_package}-ros-transport_SOURCES};${rtt-${_package}-ros-transport-corba_SOURCES};${rtt-${_package}-ros-transport-mqueue_SOURCES};${rtt_roscomm_GENERATED_HEADERS_OUTPUT_DIRECTORY}/orocos/${_package}")
